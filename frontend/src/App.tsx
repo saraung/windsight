@@ -19,18 +19,12 @@ type PageKey = 'overview' | 'timeline' | 'forecast-history';
 type Theme = 'light' | 'dark';
 
 const NAV_ITEMS = [
-  { key: 'overview', label: 'Overview', caption: 'Decision snapshot', Icon: OverviewIcon },
-  { key: 'timeline', label: 'Timeline', caption: 'Actual vs forecast', Icon: TimelineIcon },
-  {
-    key: 'forecast-history',
-    label: 'Forecast history',
-    caption: 'Vintage inspection',
-    Icon: HistoryIcon,
-  },
+  { key: 'overview', label: 'Overview', Icon: OverviewIcon },
+  { key: 'timeline', label: 'Timeline', Icon: TimelineIcon },
+  { key: 'forecast-history', label: 'Forecast history', Icon: HistoryIcon },
 ] satisfies Array<{
   key: PageKey;
   label: string;
-  caption: string;
   Icon: typeof OverviewIcon;
 }>;
 
@@ -52,6 +46,10 @@ export default function App() {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     window.localStorage.setItem('windsight-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [page]);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,123 +79,91 @@ export default function App() {
     };
   }, []);
 
-  const activeItem = NAV_ITEMS.find((item) => item.key === page) ?? NAV_ITEMS[0];
-
   return (
-    <div className="app-shell flex min-h-screen">
-      <aside className="sidebar hidden w-72 shrink-0 flex-col px-5 py-6 lg:flex">
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand)] text-white shadow-lg shadow-[color-mix(in_srgb,var(--brand)_25%,transparent)]">
-            <BrandIcon className="h-6 w-6" />
+    <div className="app-shell flex min-h-screen flex-col">
+      <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] backdrop-blur-xl">
+        <div className="content-shell flex h-16 items-center gap-4 px-4 sm:px-8 lg:px-10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand)] text-white shadow-sm">
+              <BrandIcon className="h-5 w-5" />
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-base font-bold leading-tight tracking-tight text-[var(--text)]">
+                WindSight
+              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                Elexon BMRS
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-lg font-bold tracking-tight text-[var(--text)]">WindSight</p>
-            <p className="text-xs text-[var(--text-muted)]">Wind forecast intelligence</p>
-          </div>
-        </div>
 
-        <div className="mt-12">
-          <p className="px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">
-            Workspace
-          </p>
-          <nav className="mt-3 space-y-2" aria-label="Primary navigation">
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => setPage(item.key)}
                 aria-current={page === item.key ? 'page' : undefined}
-                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
+                className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                   page === item.key
                     ? 'bg-[var(--brand-soft)] text-[var(--brand-strong)]'
                     : 'text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]'
                 }`}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-raised)] shadow-sm">
-                  <item.Icon className="h-5 w-5" />
-                </span>
-                <span>
-                  <span className="block text-sm font-semibold">{item.label}</span>
-                  <span className="mt-0.5 block text-xs text-[var(--text-subtle)]">
-                    {item.caption}
-                  </span>
-                </span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="mt-auto rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-          <p className="text-xs font-semibold text-[var(--text)]">Elexon BMRS evaluation</p>
-          <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
-            January 2026 wind forecasts compared with metered output using only information
-            available at the decision cutoff.
-          </p>
-        </div>
-      </aside>
-
-      <div className="min-w-0 flex-1">
-        <header className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_80%,transparent)] px-4 py-4 backdrop-blur-xl sm:px-8 lg:px-10">
-          <div className="content-shell flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                <span>WindSight</span>
-                <span>/</span>
-                <span className="truncate">{activeItem.label}</span>
-              </div>
-              <h1 className="mt-1 truncate text-xl font-bold tracking-tight text-[var(--text)] sm:text-2xl">
-                {activeItem.label}
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="hidden rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)] sm:inline-flex">
-                January 2026
-              </span>
-              <button
-                type="button"
-                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] shadow-sm transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
-              >
-                {theme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-              </button>
-            </div>
-          </div>
-          <nav
-            className="content-shell mt-4 flex gap-2 overflow-x-auto lg:hidden"
-            aria-label="Mobile navigation"
-          >
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => setPage(item.key)}
-                aria-current={page === item.key ? 'page' : undefined}
-                className={`whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold ${
-                  page === item.key
-                    ? 'bg-[var(--brand)] text-white'
-                    : 'bg-[var(--surface-muted)] text-[var(--text-muted)]'
-                }`}
-              >
+                <item.Icon className="h-4 w-4" />
                 {item.label}
               </button>
             ))}
           </nav>
-        </header>
 
-        <main className="content-shell space-y-6 px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
-          <StatusBanner status={status} loading={statusLoading} error={statusError} />
-          <AnalysisFilters filters={filters} onChange={setFilters} />
+          <div className="ml-auto flex items-center gap-2">
+            <StatusBanner status={status} loading={statusLoading} error={statusError} />
+            <button
+              type="button"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] shadow-sm transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+            >
+              {theme === 'dark' ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <nav
+          className="content-shell flex gap-1 overflow-x-auto border-t border-[var(--border)] px-4 py-2 md:hidden"
+          aria-label="Mobile navigation"
+        >
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setPage(item.key)}
+              aria-current={page === item.key ? 'page' : undefined}
+              className={`flex whitespace-nowrap items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                page === item.key
+                  ? 'bg-[var(--brand)] text-white'
+                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-muted)]'
+              }`}
+            >
+              <item.Icon className="h-3.5 w-3.5" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      <main className="content-shell w-full flex-1 space-y-5 px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
+        <AnalysisFilters filters={filters} onChange={setFilters} />
+        <div key={page} className="page-view">
           {page === 'overview' && <Overview filters={filters} />}
           {page === 'timeline' && <Timeline filters={filters} />}
           {page === 'forecast-history' && <ForecastHistory filters={filters} />}
-        </main>
+        </div>
+      </main>
 
-        <footer className="content-shell px-4 pb-8 text-xs text-[var(--text-muted)] sm:px-8 lg:px-10">
-          Data source: Elexon BMRS. Method: latest forecast published at or before the decision
-          cutoff, matched to hourly wind actuals.
-        </footer>
-      </div>
+      <footer className="content-shell w-full px-4 pb-6 text-[11px] text-[var(--text-muted)] sm:px-8 lg:px-10">
+        Source: Elexon BMRS. Scope: WINDFOR total wind vs FUELHH transmission-metered wind.
+      </footer>
     </div>
   );
 }

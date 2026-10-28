@@ -35,86 +35,79 @@ export default function AnalysisFilters({ filters, onChange }: AnalysisFiltersPr
   };
 
   return (
-    <section className="surface rounded-3xl p-4 sm:p-5" aria-labelledby="analysis-filters-heading">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <h2 id="analysis-filters-heading" className="text-sm font-bold text-[var(--text)]">
-            Analysis window
-          </h2>
-          <p className="mt-1 text-xs text-[var(--text-muted)]">
-            Delivery period and forecast decision cutoff. All timestamps are UTC.
+    <section className="surface rounded-2xl px-3 py-2.5" aria-label="Analysis window">
+      <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+        <div className="hidden self-center pr-1 lg:block">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            Window
           </p>
+          <p className="text-[10px] text-[var(--text-subtle)]">UTC</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <label className="text-xs font-semibold text-[var(--text-muted)]">
-            From
-            <input
-              type="date"
-              value={filters.from}
-              onChange={(event) => setFrom(event.target.value)}
-              className="field mt-1.5 block w-full rounded-xl px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="text-xs font-semibold text-[var(--text-muted)]">
-            To
-            <input
-              type="date"
-              value={filters.to}
-              onChange={(event) => setTo(event.target.value)}
-              className="field mt-1.5 block w-full rounded-xl px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="text-xs font-semibold text-[var(--text-muted)]">
-            Cutoff rule
-            <select
-              value={filters.preset}
-              onChange={(event) => setPreset(event.target.value as CutoffPreset)}
-              disabled={filters.mode === 'absolute'}
-              className="field mt-1.5 block w-full rounded-xl px-3 py-2 text-sm disabled:opacity-60"
-            >
-              {CUTOFF_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </div>
 
-      <div className="mt-4 flex flex-col gap-3 border-t border-[var(--border)] pt-4 lg:flex-row lg:items-start lg:justify-between">
-        {filters.mode === 'preset' ? (
-          <p className="max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
-            <span className="font-semibold text-[var(--text)]">How a vintage is chosen:</span>{' '}
-            {selectedPreset.description} Forecasts published after the cutoff are excluded, so the
-            analysis does not use information unavailable at decision time.
-          </p>
-        ) : (
-          <div className="flex-1">
-            <label className="text-xs font-semibold text-[var(--text-muted)]">
-              Absolute cutoff (UTC)
-              <input
-                type="datetime-local"
-                value={filters.absolute}
-                max={`${filters.from}T00:00`}
-                onChange={(event) => onChange({ ...filters, absolute: event.target.value })}
-                className="field mt-1.5 block w-full max-w-xs rounded-xl px-3 py-2 text-sm"
-              />
-            </label>
-            <p className="mt-2 max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
-              A single cutoff must be at or before {filters.from} 00:00 UTC. A later cutoff would
-              let forecasts published during the delivery period leak into the evaluation.
-            </p>
-          </div>
-        )}
+        <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+          From
+          <input
+            type="date"
+            value={filters.from}
+            onChange={(event) => setFrom(event.target.value)}
+            className="field mt-1 block h-8 w-[8.75rem] rounded-lg px-2 text-xs font-normal normal-case tracking-normal"
+          />
+        </label>
+
+        <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+          To
+          <input
+            type="date"
+            value={filters.to}
+            onChange={(event) => setTo(event.target.value)}
+            className="field mt-1 block h-8 w-[8.75rem] rounded-lg px-2 text-xs font-normal normal-case tracking-normal"
+          />
+        </label>
+
+        <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+          Cutoff
+          <select
+            value={filters.preset}
+            onChange={(event) => setPreset(event.target.value as CutoffPreset)}
+            disabled={filters.mode === 'absolute'}
+            title={selectedPreset.description}
+            className="field mt-1 block h-8 w-[12.5rem] rounded-lg px-2 text-xs font-normal normal-case tracking-normal disabled:opacity-50"
+          >
+            {CUTOFF_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} title={option.description}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {filters.mode === 'absolute' ? (
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+            Absolute cutoff
+            <input
+              type="datetime-local"
+              value={filters.absolute}
+              max={`${filters.from}T00:00`}
+              onChange={(event) => onChange({ ...filters, absolute: event.target.value })}
+              className="field mt-1 block h-8 w-[12.5rem] rounded-lg px-2 text-xs font-normal normal-case tracking-normal"
+            />
+          </label>
+        ) : null}
+
         <button
           type="button"
           onClick={filters.mode === 'preset' ? useAbsolute : usePreset}
-          className="shrink-0 self-start rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+          className="h-8 whitespace-nowrap rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-2 text-[11px] font-semibold text-[var(--text)] transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
         >
-          {filters.mode === 'preset' ? 'Use a single absolute cutoff' : 'Back to per-delivery preset'}
+          {filters.mode === 'preset' ? 'Absolute cutoff' : 'Per-delivery'}
         </button>
       </div>
+
+      {filters.mode === 'absolute' ? (
+        <p className="mt-2 text-[11px] leading-4 text-[var(--text-muted)]">
+          One cutoff for every delivery hour; must be at or before {filters.from} 00:00 UTC.
+        </p>
+      ) : null}
     </section>
   );
 }

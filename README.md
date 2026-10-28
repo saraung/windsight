@@ -296,8 +296,8 @@ At the time of writing:
 
 ## AI tools
 
-AI coding assistants were used during development for implementation support,
-research, test writing, and documentation. All production data is fetched from
+ChatGPT and DeepSeek were used during development for research, implementation
+support, test writing, and documentation. All production data is fetched from
 Elexon at request time; the app does not fabricate metrics or use fixture data in
 the deployed dashboard. The final methodology, verification, and submission
 decisions remain the author's responsibility.

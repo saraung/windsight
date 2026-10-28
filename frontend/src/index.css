@@ -115,9 +115,19 @@ select:focus-visible {
     var(--page);
 }
 
-.sidebar {
-  background: color-mix(in srgb, var(--surface) 92%, var(--brand-soft));
-  border-right: 1px solid var(--border);
+.page-view {
+  animation: page-enter 160ms ease-out;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .content-shell {

@@ -97,12 +97,11 @@ export default function ForecastHistory({ filters }: { filters: AnalysisFiltersS
       <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-semibold text-[var(--brand)]">Publication trace</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--text)]">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text)] sm:text-3xl">
             Forecast history
-          </h2>
+          </h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-            Inspect every vintage available for one delivery hour. Eligible publications are at or
-            before the cutoff; excluded publications are later and would introduce look-ahead bias.
+            Every WINDFOR publication for one delivery hour, split by the effective cutoff.
           </p>
         </div>
         <label className="text-xs font-semibold text-[var(--text-muted)]">
@@ -125,8 +124,7 @@ export default function ForecastHistory({ filters }: { filters: AnalysisFiltersS
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{error}</p>
           <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
-            The delivery hour and cutoff must be valid UTC timestamps. An absolute cutoff cannot be
-            after the delivery hour.
+            Check the delivery hour and cutoff.
           </p>
         </div>
       ) : null}
@@ -199,8 +197,8 @@ export default function ForecastHistory({ filters }: { filters: AnalysisFiltersS
               </div>
             ) : (
               <p className="mt-6 text-sm leading-6 text-[var(--text-muted)]">
-                No eligible forecast vintage exists for this delivery hour. That is a missing
-                forecast, not a zero forecast, and it is excluded from accuracy metrics.
+                No eligible vintage. This is treated as a missing forecast and excluded from
+                metrics.
               </p>
             )}
           </div>
@@ -208,30 +206,18 @@ export default function ForecastHistory({ filters }: { filters: AnalysisFiltersS
           <div className="grid gap-6 lg:grid-cols-2">
             <VintageList
               title="Eligible publications"
-              description="These could have been used at decision time."
+              description="Available at decision time."
               items={data.eligible_vintages}
               tone="success"
               selected={data.selected}
             />
             <VintageList
               title="Excluded publications"
-              description="These were published later and are not used."
+              description="Published after cutoff; not used."
               items={data.excluded_vintages}
               tone="accent"
               selected={null}
             />
-          </div>
-
-          <div className="surface-muted rounded-3xl p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-              Reading this view
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-              The selected vintage is the latest publication at or before the cutoff. The eligible
-              count excludes later revisions, even when a later revision would have been more
-              accurate. This is deliberate: the evaluation should reflect what a trader could
-              actually know.
-            </p>
           </div>
         </>
       ) : null}

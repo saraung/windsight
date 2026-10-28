@@ -13,14 +13,12 @@ export const CUTOFF_OPTIONS: Array<{
   {
     value: 'day_ahead_noon',
     label: 'Day-ahead 12:00 UTC (D-1)',
-    description:
-      'The latest forecast published by noon UTC on the day before delivery. This is the default trading assumption.',
+    description: 'Latest forecast published by noon UTC on the day before delivery.',
   },
   {
     value: 'day_ahead_midnight',
     label: 'Day-ahead 00:00 UTC (D-1)',
-    description:
-      'The latest forecast published by midnight UTC at the start of the day before delivery.',
+    description: 'Latest forecast published by midnight UTC on the day before delivery.',
   },
   {
     value: 'hours_24',

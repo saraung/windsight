@@ -93,8 +93,8 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
         <p className="text-sm font-bold text-[var(--danger)]">Unable to load the overview</p>
         <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{error}</p>
         <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
-          Check that the selected period is valid. An absolute cutoff must be at or before the first
-          delivery day at 00:00 UTC.
+          Check the period and cutoff. An absolute cutoff must be at or before the first delivery
+          day.
         </p>
       </section>
     );
@@ -119,12 +119,11 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
       <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-semibold text-[var(--brand)]">Decision snapshot</p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-bold tracking-tight text-[var(--text)] sm:text-4xl">
+          <h1 className="mt-2 max-w-2xl text-2xl font-bold tracking-tight text-[var(--text)] sm:text-3xl">
             How reliable was the wind forecast?
-          </h2>
+          </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-            The latest vintage available at the decision cutoff is compared with hourly metered wind
-            output. Use the error range and bias to judge the forecast before committing to a trade.
+            The latest forecast available at the cutoff, compared with hourly metered output.
           </p>
         </div>
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-right shadow-sm">
@@ -145,7 +144,7 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                What this means for a trader
+                Key reading
               </p>
               <h3 className="mt-2 text-xl font-bold tracking-tight text-[var(--text)]">
                 {reading.headline}
@@ -157,12 +156,6 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
           </div>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
             {reading.body}
-          </p>
-          <p className="mt-4 rounded-2xl border border-[var(--accent)] bg-[var(--accent-soft)] p-3 text-xs leading-5 text-[var(--text)]">
-            <span className="font-bold">Scope caveat:</span> WINDFOR covers total wind, while
-            FUELHH WIND reports transmission-metered output. Part of the measured gap is a
-            measurement-scope difference, not forecast error. Treat the direction and the change
-            across cutoffs as the signal, not the absolute bias alone.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl bg-[var(--surface-muted)] p-4">
@@ -254,7 +247,7 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
             <div>
               <p className="text-sm font-bold text-[var(--text)]">Data coverage</p>
               <p className="mt-1 text-xs text-[var(--text-muted)]">
-                Missing values are never imputed as zero.
+                Missing data is not counted as zero.
               </p>
             </div>
             <span className="text-sm font-bold text-[var(--brand)]">{formatPct(coveragePct)}</span>
@@ -287,7 +280,7 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
             <div>
               <p className="text-sm font-bold text-[var(--text)]">Daily accuracy</p>
               <p className="mt-1 text-xs text-[var(--text-muted)]">
-                Days with no valid pairs are kept visible rather than hidden.
+                Days with zero valid pairs remain visible.
               </p>
             </div>
             <span className="text-xs font-semibold text-[var(--text-muted)]">
@@ -336,18 +329,6 @@ export default function Overview({ filters }: { filters: AnalysisFiltersState })
             </div>
           )}
         </div>
-      </div>
-
-      <div className="surface-muted rounded-3xl p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-          Method note
-        </p>
-        <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-          Forecast error is forecast minus actual. For each delivery hour, the selected vintage is
-          the latest WINDFOR publication at or before the cutoff. Half-hourly FUELHH actuals are
-          averaged to hourly values only when both half-hours are present and valid. MAE, RMSE, and
-          bias use only matched pairs; coverage counts show the data that was excluded.
-        </p>
       </div>
     </section>
   );

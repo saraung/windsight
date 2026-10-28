@@ -226,12 +226,12 @@ export default function Timeline({ filters }: { filters: AnalysisFiltersState })
     <section className="space-y-6" aria-busy={loading}>
       <div>
         <p className="text-sm font-semibold text-[var(--brand)]">Generation profile</p>
-        <h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--text)]">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text)] sm:text-3xl">
           Actual versus forecast timeline
-        </h2>
+        </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-          {data.from_date} to {data.to_date}. Each point uses the latest forecast published at or
-          before the effective cutoff. Missing forecasts and actuals are shown as gaps, not zero.
+          {data.from_date} to {data.to_date}. Latest eligible vintage per hour; gaps are missing
+          data.
         </p>
       </div>
 

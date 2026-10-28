@@ -19,17 +19,17 @@ export default function StatusBanner({ status, loading, error }: StatusBannerPro
   const allCached = sources.length > 0 && sources.every((source) => source.cached);
   const anyStale = sources.some((source) => source.stale);
 
-  let headline = 'Checking the backend cache';
-  let detail = 'Status is requested directly from the API, not assumed.';
+  let label = 'Checking data';
+  let detail = 'Fetching source status.';
   let tone = 'muted';
 
   if (error) {
-    headline = 'Cache status unavailable';
-    detail = 'Analysis requests may still work. The backend did not return status metadata.';
+    label = 'Data status unavailable';
+    detail = 'Analysis requests may still work.';
     tone = 'warning';
   } else if (status) {
-    headline = allCached ? 'Backend cache available' : 'Backend cache not yet populated';
-    detail = sources.map(sourceLabel).join('  /  ');
+    label = anyStale ? 'Data stale' : allCached ? 'Data cached' : 'Data pending';
+    detail = sources.map(sourceLabel).join(' · ');
     tone = anyStale ? 'warning' : allCached ? 'success' : 'muted';
   }
 
@@ -40,31 +40,15 @@ export default function StatusBanner({ status, loading, error }: StatusBannerPro
   }[tone];
 
   return (
-    <div className="space-y-3">
-      <div
-        className={`flex flex-col gap-2 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${toneClass}`}
-        role="status"
-        aria-live="polite"
-      >
-        <div className="flex items-center gap-2 text-xs font-semibold">
-          <span className="inline-block h-2 w-2 rounded-full bg-current" aria-hidden="true" />
-          {loading && !status ? 'Checking the backend cache' : headline}
-        </div>
-        <p className="text-xs leading-5 opacity-90">
-          {loading && !status ? 'Status is requested directly from the API, not assumed.' : detail}
-        </p>
-      </div>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-          Scope and limitations
-        </p>
-        <p className="mt-1.5 text-xs leading-5 text-[var(--text-muted)]">
-          FUELHH reports transmission-metered wind output, while WINDFOR forecasts total wind. This
-          is the closest public forecast/actual pair available, but it is not an exact like-for-like
-          settlement calculation. Demand, thermal procurement, and imbalance prices are out of
-          scope.
-        </p>
-      </div>
+    <div
+      className={`flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold ${toneClass}`}
+      role="status"
+      aria-live="polite"
+      aria-label={`${label}. ${detail}`}
+      title={detail}
+    >
+      <span className="inline-block h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+      {loading && !status ? 'Checking data' : label}
     </div>
   );
 }
