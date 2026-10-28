@@ -15,19 +15,20 @@
   --border: #e4e9f1;
   --border-strong: #d3dae6;
   --text: #172033;
-  --text-muted: #667085;
-  --text-subtle: #98a2b3;
+  --text-muted: #5f6b7a;
+  --text-subtle: #5f6b7a;
   --brand: #146c94;
   --brand-strong: #0e4f6c;
   --brand-soft: #e7f4fa;
-  --accent: #f59e0b;
+  --accent: #b45309;
+  --accent-strong: #92400e;
   --accent-soft: #fff4d8;
-  --success: #138a72;
+  --success: #0f7663;
   --success-soft: #e5f7f2;
-  --danger: #c2415d;
+  --danger: #b42346;
   --danger-soft: #fff0f2;
-  --chart-forecast: #f59e0b;
-  --chart-actual: #1495b8;
+  --chart-forecast: #d97706;
+  --chart-actual: #0e7490;
   --chart-grid: #e5eaf2;
   --shadow: 0 16px 40px rgb(25 52 79 / 7%);
 }
@@ -42,12 +43,13 @@
   --border: #233247;
   --border-strong: #33465e;
   --text: #e7edf5;
-  --text-muted: #9dacbf;
-  --text-subtle: #728299;
+  --text-muted: #a8b6c8;
+  --text-subtle: #94a3b8;
   --brand: #56b5d8;
   --brand-strong: #8ed4eb;
   --brand-soft: #16374a;
   --accent: #fbbf24;
+  --accent-strong: #fcd34d;
   --accent-soft: #44320e;
   --success: #4fd1b2;
   --success-soft: #123d36;
@@ -78,6 +80,32 @@ input {
 
 button {
   cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .app-shell {

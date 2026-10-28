@@ -29,7 +29,12 @@ class DataLoader:
         client: ElexonClient | None = None,
         cache_dir: Path | None = None,
     ) -> None:
-        self._ec = client or ElexonClient(settings.elexon_base_url, settings.elexon_timeout_seconds)
+        self._ec = client or ElexonClient(
+            settings.elexon_base_url,
+            settings.elexon_timeout_seconds,
+            max_retries=settings.elexon_max_retries,
+            backoff_seconds=settings.elexon_retry_backoff_seconds,
+        )
         self.cache_dir = cache_dir or settings.data_cache_path / "cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -102,6 +107,21 @@ class DataLoader:
         rows = payload.get("data")
         if not isinstance(rows, list):
             return None
+
+        retrieved_raw = payload.get("retrieved_at_utc")
+        if isinstance(retrieved_raw, str):
+            try:
+                retrieved = datetime.fromisoformat(retrieved_raw.replace("Z", "+00:00"))
+                if retrieved.tzinfo is None:
+                    retrieved = retrieved.replace(tzinfo=timezone.utc)
+                age_hours = (
+                    datetime.now(timezone.utc) - retrieved.astimezone(timezone.utc)
+                ).total_seconds() / 3600.0
+                if age_hours > settings.cache_ttl_hours:
+                    return None
+            except ValueError:
+                return None
+
         records = [normalize_raw_row(row, source) for row in rows]
         return [record for record in records if record is not None]
 

@@ -13,9 +13,12 @@ class Settings(BaseSettings):
 
     elexon_base_url: str = "https://data.elexon.co.uk/bmrs/api/v1"
     elexon_timeout_seconds: float = Field(default=30.0, gt=0)
+    elexon_max_retries: int = Field(default=2, ge=0, le=5)
+    elexon_retry_backoff_seconds: float = Field(default=0.5, ge=0)
 
     cors_origins: str = "http://localhost:5173"
     data_cache_dir: str = "app/data"
+    cache_ttl_hours: float = Field(default=24.0, gt=0)
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",

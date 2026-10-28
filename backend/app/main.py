@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import accuracy, forecast_history, health, overview, timeseries
+from app.api import accuracy, data_status, forecast_history, health, overview, timeseries
 from app.config import settings
 from app.services.elexon_client import ElexonError
 
@@ -24,6 +24,7 @@ app.include_router(overview.router)
 app.include_router(accuracy.router)
 app.include_router(timeseries.router)
 app.include_router(forecast_history.router)
+app.include_router(data_status.router)
 
 
 @app.get("/", include_in_schema=False)

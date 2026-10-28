@@ -8,12 +8,15 @@ services:
       DEBUG: "false"
       ELEXON_BASE_URL: https://data.elexon.co.uk/bmrs/api/v1
       ELEXON_TIMEOUT_SECONDS: "30"
+      ELEXON_MAX_RETRIES: "2"
+      ELEXON_RETRY_BACKOFF_SECONDS: "0.5"
       CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
       DATA_CACHE_DIR: app/data
+      CACHE_TTL_HOURS: "24"
     ports:
       - "8000:8000"
     volumes:
-      - windight-cache:/app/app/data/cache
+      - windsight-cache:/app/app/data/cache
     healthcheck:
       test:
         [
@@ -45,4 +48,4 @@ services:
       start_period: 5s
 
 volumes:
-  windight-cache:
+  windsight-cache:

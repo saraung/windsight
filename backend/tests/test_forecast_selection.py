@@ -2,9 +2,14 @@
 
 from datetime import datetime, timezone
 
+import pytest
+
 from app.schemas.records import NormalizedRecord
 from app.services.forecast_selection import (
+    CutoffPreset,
+    cutoff_for_preset,
     default_cutoff,
+    parse_cutoff_preset,
     select_all,
     select_latest_forecast,
 )
@@ -97,6 +102,35 @@ def test_default_cutoff_for_midnight_delivery():
     delivery = datetime(2026, 1, 15, 0, 0, tzinfo=timezone.utc)
     cutoff = default_cutoff(delivery)
     assert cutoff == datetime(2026, 1, 14, 12, 0, tzinfo=timezone.utc)
+
+
+def test_cutoff_presets_are_delivery_relative():
+    delivery = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+    assert cutoff_for_preset(CutoffPreset.DAY_AHEAD_NOON, delivery) == datetime(
+        2026, 1, 14, 12, 0, tzinfo=timezone.utc
+    )
+    assert cutoff_for_preset(CutoffPreset.DAY_AHEAD_MIDNIGHT, delivery) == datetime(
+        2026, 1, 14, 0, 0, tzinfo=timezone.utc
+    )
+    assert cutoff_for_preset(CutoffPreset.HOURS_24, delivery) == datetime(
+        2026, 1, 14, 12, 0, tzinfo=timezone.utc
+    )
+    assert cutoff_for_preset(CutoffPreset.HOURS_12, delivery) == datetime(
+        2026, 1, 15, 0, 0, tzinfo=timezone.utc
+    )
+    assert cutoff_for_preset(CutoffPreset.HOURS_2, delivery) == datetime(
+        2026, 1, 15, 10, 0, tzinfo=timezone.utc
+    )
+    assert cutoff_for_preset(CutoffPreset.HOURS_1, delivery) == datetime(
+        2026, 1, 15, 11, 0, tzinfo=timezone.utc
+    )
+
+
+def test_parse_cutoff_preset_defaults_and_rejects_invalid():
+    assert parse_cutoff_preset(None) is CutoffPreset.DAY_AHEAD_NOON
+    assert parse_cutoff_preset("hours_2") is CutoffPreset.HOURS_2
+    with pytest.raises(ValueError, match="invalid cutoff_preset"):
+        parse_cutoff_preset("tomorrow")
 
 
 def test_select_all_matches_by_delivery_time():

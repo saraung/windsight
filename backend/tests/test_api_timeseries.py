@@ -15,6 +15,12 @@ def _fake_result() -> dict:
         "from_date": date(2026, 1, 15),
         "to_date": date(2026, 1, 15),
         "decision_cutoff": None,
+        "cutoff_mode": "per_delivery",
+        "cutoff_preset": "day_ahead_noon",
+        "cutoff_label": "Day-ahead noon",
+        "cutoff_description": "Forecast published by 12:00 the day before delivery.",
+        "cutoff_start": datetime(2026, 1, 14, 12, 0, tzinfo=timezone.utc),
+        "cutoff_end": datetime(2026, 1, 14, 12, 0, tzinfo=timezone.utc),
         "metrics": {
             "n": 1,
             "mae": 10.0,
@@ -22,13 +28,17 @@ def _fake_result() -> dict:
             "bias": 10.0,
             "overforecast_percentage": 100.0,
         },
+        "daily": [],
         "coverage": {
             "total_delivery_intervals": 1,
             "matched_pairs": 1,
             "missing_forecast": 0,
             "missing_actual": 0,
+            "missing_both": 0,
             "invalid_forecast": 0,
             "invalid_actual": 0,
+            "incomplete_actual": 0,
+            "coverage_percentage": 100.0,
         },
         "matches": [
             {
@@ -65,4 +75,7 @@ def test_timeseries_returns_points(monkeypatch):
     point = body["points"][0]
     assert point["forecast_mw"] == 100.0
     assert point["actual_mw"] == 90.0
+    assert point["error_mw"] == 10.0
+    assert point["lead_time_hours"] == 26.0
+    assert point["cutoff"] == "2026-01-14T12:00:00Z"
     assert point["forecast_source"] == "WINDFOR"

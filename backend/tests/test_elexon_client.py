@@ -127,6 +127,68 @@ def test_invalid_dataset_code_raises_value_error():
             client.get_dataset_stream("bad code", {})
 
 
+def test_transient_server_error_retried_then_succeeds():
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(503, text="temporarily unavailable")
+        return httpx.Response(200, json=[])
+
+    with ElexonClient(
+        "http://127.0.0.1:9999",
+        transport=make_transport(handler),
+        max_retries=2,
+        backoff_seconds=0,
+    ) as client:
+        result = client.get_dataset_stream("WINDFOR", {})
+
+    assert result == []
+    assert len(calls) == 2
+
+
+def test_retries_exhausted_raise_http_error():
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        return httpx.Response(500, text="boom")
+
+    with ElexonClient(
+        "http://127.0.0.1:9999",
+        transport=make_transport(handler),
+        max_retries=2,
+        backoff_seconds=0,
+    ) as client:
+        with pytest.raises(ElexonHTTPError):
+            client.get_dataset_stream("WINDFOR", {})
+
+    assert len(calls) == 3
+
+
+def test_rate_limit_honours_retry_after_without_sleeping():
+    calls: list[int] = []
+    sleeps: list[float] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(429, headers={"Retry-After": "7"}, text="slow down")
+        return httpx.Response(200, json=[])
+
+    with ElexonClient(
+        "http://127.0.0.1:9999",
+        transport=make_transport(handler),
+        max_retries=1,
+        backoff_seconds=0,
+        sleep_func=sleeps.append,
+    ) as client:
+        assert client.get_dataset_stream("WINDFOR", {}) == []
+
+    assert sleeps == [7.0]
+
+
 def test_all_exceptions_inherit_from_elexon_error():
     assert issubclass(ElexonConnectionError, ElexonError)
     assert issubclass(ElexonTimeoutError, ElexonError)

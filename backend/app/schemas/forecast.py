@@ -1,10 +1,10 @@
 """Typed response schemas for forecast series, history, and selection."""
 
-from datetime import date, datetime
+from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.schemas.accuracy import AccuracyCoverage
+from app.schemas.accuracy import AccuracyCoverage, PeriodResponseBase
 
 
 class ForecastVintage(BaseModel):
@@ -13,6 +13,7 @@ class ForecastVintage(BaseModel):
     publish_time: datetime
     start_time: datetime
     generation_mw: float | None = None
+    lead_time_hours: float | None = None
 
 
 class ForecastHistoryResponse(BaseModel):
@@ -20,6 +21,10 @@ class ForecastHistoryResponse(BaseModel):
 
     delivery_time: datetime
     cutoff: datetime
+    cutoff_mode: str = "per_delivery"
+    cutoff_preset: str | None = None
+    cutoff_label: str = ""
+    cutoff_description: str = ""
     selected: ForecastVintage | None = None
     eligible_vintages: list[ForecastVintage] = []
     excluded_vintages: list[ForecastVintage] = []
@@ -31,16 +36,16 @@ class ForecastPoint(BaseModel):
     delivery_time: datetime
     forecast_mw: float | None = None
     actual_mw: float | None = None
+    error_mw: float | None = None
+    lead_time_hours: float | None = None
     publish_time: datetime | None = None
+    cutoff: datetime | None = None
     forecast_source: str | None = None
     forecast_dataset: str | None = None
 
 
-class TimeseriesResponse(BaseModel):
+class TimeseriesResponse(PeriodResponseBase):
     """Actual versus selected forecast series for a delivery period."""
 
-    from_date: date
-    to_date: date
-    decision_cutoff: datetime | None = None
     points: list[ForecastPoint] = []
     coverage: AccuracyCoverage = AccuracyCoverage()

@@ -86,7 +86,7 @@ def test_cache_hit_avoids_network(tmp_path):
 
     payload = {
         "source": "FUELHH",
-        "retrieved_at_utc": "2026-10-28T00:00:00+00:00",
+        "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
         "time_range": "WIND_2026-01-01_to_2026-01-01",
         "params": {
             "settlementDateFrom": "2026-01-01",
@@ -108,6 +108,35 @@ def test_cache_hit_avoids_network(tmp_path):
 
     assert len(records) == 1
     assert records[0].generation_mw == 13756.0
+
+
+def test_stale_cache_is_refetched(tmp_path):
+    calls: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        return httpx.Response(200, json=FUELHH_ROWS)
+
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+    payload = {
+        "source": "FUELHH",
+        "retrieved_at_utc": "2026-01-01T00:00:00+00:00",
+        "time_range": "WIND_2026-01-01_to_2026-01-01",
+        "params": {},
+        "row_count": 1,
+        "normalized_count": 1,
+        "data": [FUELHH_ROWS[0]],
+    }
+    (cache_dir / "raw_FUELHH_WIND_2026-01-01_to_2026-01-01.json").write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
+
+    loader = _make_loader(tmp_path, httpx.MockTransport(handler))
+    records = loader.fetch_actuals(date(2026, 1, 1), date(2026, 1, 1))
+
+    assert len(calls) == 1
+    assert len(records) == 2
 
 
 def test_force_refresh_refetches(tmp_path):

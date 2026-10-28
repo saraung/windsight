@@ -1,3 +1,5 @@
+import time
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -40,19 +42,28 @@ class ElexonResponseError(ElexonError):
 class ElexonClient:
     """Thin synchronous client over the Elexon BMRS API v1.
 
-    The client does not retry failed requests. Callers decide how to handle
-    each exception type (for example, backing off on ``ElexonRateLimitError``).
+    Optional retries handle transient timeouts, connection failures, 429
+    responses, and common 5xx statuses. The client itself defaults to no
+    retries; the application's data loader supplies configured retry values.
     """
+
+    RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
 
     def __init__(
         self,
         base_url: str,
         timeout: float = 30.0,
         transport: httpx.BaseTransport | None = None,
+        max_retries: int = 0,
+        backoff_seconds: float = 0.5,
+        sleep_func: Callable[[float], None] = time.sleep,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._transport = transport
+        self.max_retries = max(0, max_retries)
+        self.backoff_seconds = max(0.0, backoff_seconds)
+        self._sleep = sleep_func
         self._client: httpx.Client | None = None
 
     def __enter__(self) -> "ElexonClient":
@@ -79,6 +90,16 @@ class ElexonClient:
     def _first_text(text: str) -> str:
         return text.strip().splitlines()[0].strip() if text.strip() else ""
 
+    def _retry_delay(self, response: httpx.Response, attempt: int) -> float:
+        if response.status_code == 429:
+            raw = response.headers.get("Retry-After")
+            if raw:
+                try:
+                    return min(float(raw), 60.0)
+                except ValueError:
+                    pass
+        return self.backoff_seconds * (2**attempt)
+
     def _handle_http_error(self, exc: httpx.HTTPStatusError) -> None:
         body = self._first_text(exc.response.text)
         status = exc.response.status_code
@@ -100,6 +121,42 @@ class ElexonClient:
             str(exc.request.url),
             body,
         ) from exc
+
+    def _get(self, url: str, params: dict[str, Any] | None) -> httpx.Response:
+        """GET with optional retries for transient failures."""
+        last_error: ElexonError | None = None
+
+        for attempt in range(self.max_retries + 1):
+            cause: Exception | None = None
+            try:
+                response = self.client.get(url, params=params)
+            except httpx.ConnectError as exc:
+                last_error = ElexonConnectionError(f"could not connect to Elexon at {url}")
+                cause = exc
+            except httpx.TimeoutException as exc:
+                last_error = ElexonTimeoutError(f"timed out connecting to Elexon at {url}")
+                cause = exc
+            except httpx.RequestError as exc:
+                last_error = ElexonConnectionError(f"request to Elexon failed: {exc}")
+                cause = exc
+            else:
+                if response.status_code in self.RETRYABLE_STATUSES and attempt < self.max_retries:
+                    self._sleep(self._retry_delay(response, attempt))
+                    continue
+                try:
+                    response.raise_for_status()
+                except httpx.HTTPStatusError as exc:
+                    self._handle_http_error(exc)
+                    raise  # unreachable
+                return response
+
+            if attempt < self.max_retries:
+                self._sleep(self.backoff_seconds * (2**attempt))
+                continue
+            assert last_error is not None
+            raise last_error from cause
+
+        raise RuntimeError("request failed without an error")
 
     def _parse_dataset_response(
         self, payload: Any, envelope_expected: bool
@@ -140,26 +197,11 @@ class ElexonClient:
         """Fetch a standard dataset endpoint returning ``{"data": [...]}``."""
         self._validate_dataset_code(dataset)
         url = f"{self.base_url}/datasets/{dataset}"
-        try:
-            response = self.client.get(url, params=params)
-        except httpx.ConnectError as exc:
-            raise ElexonConnectionError(f"could not connect to Elexon at {url}") from exc
-        except httpx.TimeoutException as exc:
-            raise ElexonTimeoutError(f"timed out connecting to Elexon at {url}") from exc
-        except httpx.RequestError as exc:
-            raise ElexonConnectionError(f"request to Elexon failed: {exc}") from exc
-
-        try:
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            self._handle_http_error(exc)
-            raise  # unreachable
-
+        response = self._get(url, params)
         try:
             payload = response.json()
         except ValueError as exc:
             raise ElexonResponseError(f"Elexon response for {url} was not valid JSON") from exc
-
         return self._parse_dataset_response(payload, envelope_expected=True)
 
     def get_dataset_stream(
@@ -168,26 +210,11 @@ class ElexonClient:
         """Fetch an optimised stream endpoint returning a bare JSON array."""
         self._validate_dataset_code(dataset)
         url = f"{self.base_url}/datasets/{dataset}/stream"
-        try:
-            response = self.client.get(url, params=params)
-        except httpx.ConnectError as exc:
-            raise ElexonConnectionError(f"could not connect to Elexon at {url}") from exc
-        except httpx.TimeoutException as exc:
-            raise ElexonTimeoutError(f"timed out connecting to Elexon at {url}") from exc
-        except httpx.RequestError as exc:
-            raise ElexonConnectionError(f"request to Elexon failed: {exc}") from exc
-
-        try:
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            self._handle_http_error(exc)
-            raise  # unreachable
-
+        response = self._get(url, params)
         try:
             payload = response.json()
         except ValueError as exc:
             raise ElexonResponseError(
                 f"Elexon stream response for {url} was not valid JSON"
             ) from exc
-
         return self._parse_dataset_response(payload, envelope_expected=False)

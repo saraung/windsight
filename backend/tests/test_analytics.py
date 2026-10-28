@@ -1,9 +1,13 @@
 """Integration-style tests for the analysis orchestration layer."""
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from app.schemas.records import NormalizedRecord
-from app.services.analytics import aggregate_actuals_to_hourly, compute_analysis
+from app.services.analytics import (
+    aggregate_actuals_to_hourly,
+    compute_analysis,
+    expected_hourly_intervals,
+)
 from app.services.forecast_selection import default_cutoff
 
 DELIVERY_12 = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
@@ -50,6 +54,37 @@ def test_aggregate_actuals_skips_hour_with_no_valid_generation():
     assert hourly[0].generation_mw is None
 
 
+def test_expected_hourly_intervals_covers_full_days():
+    intervals = expected_hourly_intervals(date(2026, 1, 1), date(2026, 1, 2))
+    assert len(intervals) == 48
+    assert intervals[0] == datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc)
+    assert intervals[-1] == datetime(2026, 1, 2, 23, 0, tzinfo=timezone.utc)
+
+
+def test_compute_analysis_reports_missing_both_and_incomplete_actuals():
+    cutoff = datetime(2026, 1, 14, 12, 0, tzinfo=timezone.utc)
+    result = compute_analysis(
+        forecasts=[],
+        actuals=[
+            _actual(DELIVERY_12, 90),
+            _actual(DELIVERY_13, 80),
+            _actual(DELIVERY_13.replace(minute=30), 82),
+        ],
+        cutoff_func=lambda _: cutoff,
+        delivery_times=[DELIVERY_12, DELIVERY_13, DELIVERY_13.replace(hour=14)],
+    )
+
+    assert result["total_delivery_intervals"] == 3
+    assert result["matched_pairs"] == 0
+    assert result["missing_forecast"] == 3
+    assert result["missing_actual"] == 1
+    assert result["missing_both"] == 1
+    assert result["invalid_actual"] == 1
+    assert result["incomplete_actual"] == 1
+    assert result["coverage_percentage"] == 0.0
+    assert result["metrics"]["n"] == 0
+
+
 def test_compute_analysis_counts_and_metrics():
     # One missing forecast (no WINDFOR for 13:00), one valid pair at 12:00
     forecasts = [
@@ -57,7 +92,9 @@ def test_compute_analysis_counts_and_metrics():
     ]
     actuals = [
         _actual(DELIVERY_12, 90),  # valid pair: error +10
+        _actual(DELIVERY_12.replace(minute=30), 90),
         _actual(DELIVERY_13, 80),  # missing forecast
+        _actual(DELIVERY_13.replace(minute=30), 80),
     ]
     cutoff = datetime(2026, 1, 14, 12, 0, tzinfo=timezone.utc)
     result = compute_analysis(
@@ -82,6 +119,7 @@ def test_compute_analysis_missing_actual_not_zero():
     ]
     actuals = [
         _actual(DELIVERY_12, None),  # missing actual → excluded, not zero
+        _actual(DELIVERY_12.replace(minute=30), None),
     ]
     cutoff = datetime(2026, 1, 14, 12, 0, tzinfo=timezone.utc)
     result = compute_analysis(
@@ -103,7 +141,10 @@ def test_compute_analysis_uses_default_cutoff():
         # Published after D-1 12:00 cutoff → must not be selected
         _forecast(datetime(2026, 1, 14, 13, 0, tzinfo=timezone.utc), DELIVERY_12, 999),
     ]
-    actuals = [_actual(DELIVERY_12, 90)]
+    actuals = [
+        _actual(DELIVERY_12, 90),
+        _actual(DELIVERY_12.replace(minute=30), 90),
+    ]
     result = compute_analysis(forecasts, actuals, cutoff_func=default_cutoff)
 
     assert result["matched_pairs"] == 1

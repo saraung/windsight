@@ -12,6 +12,10 @@ def test_forecast_history_returns_selected_and_vintages(monkeypatch):
     fake = {
         "delivery_time": "2026-01-15T12:00:00Z",
         "cutoff": "2026-01-14T12:00:00Z",
+        "cutoff_mode": "absolute",
+        "cutoff_preset": None,
+        "cutoff_label": "Absolute cutoff: 2026-01-14T12:00:00+00:00",
+        "cutoff_description": "One fixed decision timestamp for this delivery interval.",
         "selected": {
             "publish_time": "2026-01-14T10:00:00Z",
             "start_time": "2026-01-15T12:00:00Z",
@@ -33,7 +37,7 @@ def test_forecast_history_returns_selected_and_vintages(monkeypatch):
         ],
     }
 
-    def _fake(delivery_time, cutoff=None):
+    def _fake(delivery_time, cutoff=None, cutoff_preset=None):
         return fake
 
     monkeypatch.setattr("app.services.analytics.run_forecast_history", _fake)
@@ -49,7 +53,7 @@ def test_forecast_history_returns_selected_and_vintages(monkeypatch):
 
 
 def test_forecast_history_upstream_error_returns_502(monkeypatch):
-    def _boom(delivery_time, cutoff=None):
+    def _boom(delivery_time, cutoff=None, cutoff_preset=None):
         raise ElexonError("upstream unavailable")
 
     monkeypatch.setattr("app.services.analytics.run_forecast_history", _boom)
