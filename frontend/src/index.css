@@ -108,6 +108,26 @@ button {
   border: 1px solid var(--border);
 }
 
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--surface-muted) 20%,
+    color-mix(in srgb, var(--border) 72%, var(--surface)) 45%,
+    var(--surface-muted) 70%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
 .metric-card {
   position: relative;
   overflow: hidden;

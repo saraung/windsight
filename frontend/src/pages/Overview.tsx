@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getOverview, type OverviewResponse } from '../services/api';
+import { OverviewSkeleton } from '../components/LoadingState';
 
 const DEFAULT_FROM = '2026-01-01';
 const DEFAULT_TO = '2026-01-31';
@@ -75,7 +76,7 @@ export default function Overview() {
   }, [from, to, cutoff]);
 
   if (loading) {
-    return <LoadingState title="Building your decision snapshot" />;
+    return <OverviewSkeleton />;
   }
 
   if (error || !overview) {
@@ -185,16 +186,6 @@ export default function Overview() {
           Forecast error is calculated as forecast minus actual. The selected vintage is the latest publication available at or before the configured decision cutoff.
         </p>
       </div>
-    </section>
-  );
-}
-
-function LoadingState({ title }: { title: string }) {
-  return (
-    <section className="surface rounded-3xl p-8">
-      <div className="h-3 w-24 animate-pulse rounded-full bg-[var(--border)]" />
-      <div className="mt-5 h-8 w-2/3 animate-pulse rounded-lg bg-[var(--border)]" />
-      <p className="mt-4 text-sm text-[var(--text-muted)]">{title}…</p>
     </section>
   );
 }

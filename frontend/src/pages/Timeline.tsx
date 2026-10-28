@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getTimeseries, type ForecastPoint, type TimeseriesResponse } from '../services/api';
+import { TimelineSkeleton } from '../components/LoadingState';
 
 const PERIOD_FROM = '2026-01-01';
 const PERIOD_TO = '2026-01-31';
@@ -77,7 +78,7 @@ export default function Timeline() {
     };
   }, []);
 
-  if (loading) return <section className="surface rounded-3xl p-8 text-sm text-[var(--text-muted)]">Loading generation timeline…</section>;
+  if (loading) return <TimelineSkeleton />;
   if (error || !data) return <section className="rounded-3xl border border-[var(--danger)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger)]">{error ?? 'No timeline data returned'}</section>;
   if (data.points.length === 0) return <section className="surface rounded-3xl p-8 text-sm text-[var(--text-muted)]">No delivery intervals were available.</section>;
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getForecastHistory, type ForecastHistoryResponse } from '../services/api';
+import { ForecastHistorySkeleton } from '../components/LoadingState';
 
 const DELIVERY_TIME = '2026-01-15T12:00Z';
 
@@ -28,7 +29,7 @@ export default function ForecastHistory() {
     };
   }, []);
 
-  if (loading) return <section className="surface rounded-3xl p-8 text-sm text-[var(--text-muted)]">Loading forecast vintages…</section>;
+  if (loading) return <ForecastHistorySkeleton />;
   if (error || !data) return <section className="rounded-3xl border border-[var(--danger)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger)]">{error ?? 'No forecast history returned'}</section>;
 
   const selected = data.selected;
