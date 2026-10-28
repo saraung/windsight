@@ -1,0 +1,75 @@
+# ---------- Secrets / environment ----------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# ---------- Logs ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---------- OS / editors ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
+
+# ---------- Frontend (Node / Vite / React / TS) ----------
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+coverage/
+*.tsbuildinfo
+.eslintcache
+.oxlintcache
+
+# ---------- Backend (Python / uv / FastAPI) ----------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+build/
+wheels/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# ---------- Runtime cache ----------
+backend/app/data/*
+!backend/app/data/.gitkeep
+
+# ---------- Local development / generated files ----------
+*.sqlite3
+*.db
+.Dockerignore
+.DS_Store
+
+# ---------- Build and temporary files ----------
+*.tmp
+*.bak
