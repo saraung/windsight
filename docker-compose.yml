@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_NAME: WindSight
+      APP_ENV: docker
+      DEBUG: "false"
+      ELEXON_BASE_URL: https://data.elexon.co.uk/bmrs/api/v1
+      ELEXON_TIMEOUT_SECONDS: "30"
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      DATA_CACHE_DIR: app/data
+    ports:
+      - "8000:8000"
+    volumes:
+      - windight-cache:/app/app/data/cache
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  windight-cache:
